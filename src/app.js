@@ -18,12 +18,7 @@ require("./dbs/init.mongodb");
 // const { checkOverLoad } = require("./helpers/check.connect");
 // checkOverLoad();
 // init routes
-app.get("/", (req, res, next) => {
-  const strCompress = "Hello World";
-  return res
-    .status(200)
-    .json({ message: "Hello World", metadata: strCompress.repeat(10000) });
-});
+app.use("/", require("./routes"));
 // handle errors
 
 module.exports = app;
