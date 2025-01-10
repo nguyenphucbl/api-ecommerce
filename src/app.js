@@ -11,7 +11,8 @@ dotenv.config();
 app.use(morgan("dev"));
 app.use(helmet()); // bảo mật ứng dụng
 app.use(compression()); // nén dữ liệu trước khi gửi đi
-
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 // init db
 // db.connect();
 require("./dbs/init.mongodb");
