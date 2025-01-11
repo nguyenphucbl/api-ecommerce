@@ -7,6 +7,7 @@ const KeyTokenService = require("./keyToken.service");
 const { createTokenPair } = require("../auth/authUtils");
 const { getInfoData } = require("../utils");
 const { BadRequestError } = require("../core/error.response");
+const { OK } = require("../core/success.response");
 const RoleShop = {
   SHOP: "SHOP",
   WRITER: "WRITER",
@@ -49,22 +50,16 @@ class AccessService {
         privateKey
       );
       return {
-        code: 201,
-        metadata: {
-          shop: getInfoData({
-            field: ["_id", "name", "email"],
-            object: newShop,
-          }),
-          tokens,
-        },
+        shop: getInfoData({
+          field: ["_id", "name", "email"],
+          object: newShop,
+        }),
+        tokens,
       };
 
       //const tokens = await
     }
-    return {
-      code: 200,
-      metadata: null,
-    };
+    return null;
   }
 }
 
