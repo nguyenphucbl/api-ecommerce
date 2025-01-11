@@ -1,12 +1,13 @@
 @url_dev=http://localhost:3000/v1/api/
-
+@apiKey = c7e2a2e9747e7816ce22aa93db263603f63eb9860fd245d767aeb4ddd5c54ac4b9f8a55c0250f92a54461b8421db29515c6d8f94aac7a2394bda50a4d0d9300b
 
 ### signup
 POST {{url_dev}}shop/signup
 Content-Type: application/json
+x-api-key: {{apiKey}}
 
 {
   "name": "shop name",
-  "email": "shop5gmail.com",
+  "email": "shop6gmail.com",
   "password": "abc123"
 }
