@@ -5,5 +5,5 @@ const router = express.Router();
 
 //signup
 router.post("/shop/signup", asyncHandler(AccessController.singUp));
-
+router.post("/shop/login", asyncHandler(AccessController.login));
 module.exports = router;

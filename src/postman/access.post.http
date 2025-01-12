@@ -11,3 +11,13 @@ x-api-key: {{apiKey}}
   "email": "shop10gmail.com",
   "password": "abc123"
 }
+
+### login
+POST {{url_dev}}shop/login
+Content-Type: application/json
+x-api-key: {{apiKey}}
+
+{
+  "email": "shop10gmail.com",
+  "password": "abc123"
+}
