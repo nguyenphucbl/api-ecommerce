@@ -38,7 +38,6 @@ const authentication = asyncHandler(async (req, res, next) => {
   if (!keyStore) throw new NotFoundError("Not found user");
   //3. check access token
   const accessToken = req.headers[HEADER.AUTHORIZATION].split(" ")[1];
-  console.log("🚀 ~ authentication ~ accessToken:", accessToken);
 
   if (!accessToken) throw new AuthFailureError("Invalid Request");
   try {
@@ -50,7 +49,11 @@ const authentication = asyncHandler(async (req, res, next) => {
     throw error;
   }
 });
+const verifyJWT = async (token, keySecret) => {
+  return JWT.verify(token, keySecret);
+};
 module.exports = {
   createTokenPair,
   authentication,
+  verifyJWT,
 };
