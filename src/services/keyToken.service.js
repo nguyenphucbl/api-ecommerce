@@ -1,7 +1,6 @@
 "use strict";
 
 const keyTokenModel = require("../models/keyToken.model");
-
 class KeyTokenService {
   static async createKeyToken({ userId, publicKey, privateKey, refreshToken }) {
     try {
@@ -28,6 +27,12 @@ class KeyTokenService {
     } catch (error) {
       return error;
     }
+  }
+  static async findByUserId(userId) {
+    return await keyTokenModel.findOne({ user: userId }).lean();
+  }
+  static async removeKeyById(id) {
+    return await keyTokenModel.deleteOne(id);
   }
 }
 
