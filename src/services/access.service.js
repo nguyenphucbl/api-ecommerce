@@ -18,54 +18,30 @@ const RoleShop = {
 };
 
 class AccessService {
-  static async handleRefreshToken(refreshToken) {
-    //1. check token used
-    const foundToken = await KeyTokenService.findByRefreshTokenUsed(
-      refreshToken
-    );
-    //if token used
-    if (foundToken) {
-      // decode who used
-      const { userId, email } = await verifyJWT(
-        refreshToken,
-        foundToken.privateKey
-      );
-      console.log({ userId, email });
-      // delete all token of user
+  static async handleRefreshToken({ refreshToken, user, keyStore }) {
+    const { userId, email } = user;
+    if (keyStore.refreshTokensUsed.includes(refreshToken)) {
       await KeyTokenService.deleteKeyById(userId);
       throw new ForbiddenError(
         "Error: Something went wrong! Please login again"
       );
     }
-    //if token not used
-    const holderToken = await KeyTokenService.findByRefreshToken(refreshToken);
-    console.log(
-      "🚀 ~ AccessService ~ handleRefreshToken ~ holderToken:",
-      holderToken
-    );
-    if (!holderToken) {
-      throw new AuthFailureError("Error: you must login");
-    }
-    // verify token
-    const { userId, email } = await verifyJWT(
-      refreshToken,
-      holderToken.privateKey
-    );
-    if (!userId) {
-      throw new AuthFailureError("Error: Invalid token");
+    if (keyStore.refreshToken !== refreshToken) {
+      throw new ForbiddenError("Error: Invalid token");
     }
     const foundShop = await findByEmail({ email });
     if (!foundShop) {
-      throw new BadRequestError("Error: Email not found");
+      throw new AuthFailureError("Error: Email not found");
     }
+
     // create new token pair
     const tokens = await createTokenPair(
       { userId, email },
-      holderToken.publicKey,
-      holderToken.privateKey
+      keyStore.publicKey,
+      keyStore.privateKey
     );
     // update token
-    await holderToken.updateOne({
+    await keyStore.updateOne({
       $set: {
         refreshToken: tokens.refreshToken,
       },
@@ -74,7 +50,7 @@ class AccessService {
       },
     });
     return {
-      user: { userId, email },
+      user,
       tokens,
     };
   }
