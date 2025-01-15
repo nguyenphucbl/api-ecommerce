@@ -13,10 +13,10 @@ const HEADER = {
 const createTokenPair = async (payload, publicKey, privateKey) => {
   try {
     //access token
-    const accessToken = await JWT.sign(payload, publicKey, {
+    const accessToken = JWT.sign(payload, publicKey, {
       expiresIn: "2 days",
     });
-    const refreshToken = await JWT.sign(payload, privateKey, {
+    const refreshToken = JWT.sign(payload, privateKey, {
       expiresIn: "7 days",
     });
     //verify
@@ -80,6 +80,7 @@ const authenticationV2 = asyncHandler(async (req, res, next) => {
     const decode = JWT.verify(accessToken, keyStore.publicKey);
     if (userId !== decode.userId) throw new AuthFailureError("Invalid User");
     req.keyStore = keyStore;
+    req.user = decode;
     return next();
   } catch (error) {
     throw error;
