@@ -1,7 +1,9 @@
 "use strict";
 
+const { text } = require("express");
+const { min, max } = require("lodash");
 const { Schema, model } = require("mongoose");
-
+const slugify = require("slugify");
 const DOCUMENT_NAME = "Product";
 const COLLECTION_NAME = "Products";
 
@@ -16,6 +18,7 @@ const productSchema = new Schema(
       required: true,
     },
     product_description: String,
+    product_slug: String,
     product_price: {
       type: Number,
       required: true,
@@ -37,12 +40,43 @@ const productSchema = new Schema(
       type: Schema.Types.Mixed,
       required: true,
     },
+    //more
+    product_ratingsAvg: {
+      type: Number,
+      default: 4.5,
+      min: [1, "Rating must be at least 1"],
+      max: [5, "Rating must be at most 5"],
+      set: (value) => Math.round(value * 10) / 10,
+    },
+    product_variations: {
+      type: Array,
+      default: [],
+    },
+    isDraft: {
+      type: Boolean,
+      default: true,
+      index: true,
+      select: false,
+    },
+    isPublished: {
+      type: Boolean,
+      default: false,
+      index: true,
+      select: false,
+    },
   },
   {
     timestamps: true,
     collection: COLLECTION_NAME,
   }
 );
+//create index for search
+productSchema.index({ product_name: "text", product_description: "text" });
+// document middleware runs before .save() and .create()
+productSchema.pre("save", function (next) {
+  this.product_slug = slugify(this.product_name, { lower: true });
+  next();
+});
 
 // define the product type = clothes
 const clothingSchema = new Schema(
