@@ -31,6 +31,20 @@ class ProductController {
       }),
     }).send(res);
   }
+  //update product
+  async updateProduct(req, res, next) {
+    new SuccessResponse({
+      message: "update product successfully",
+      metadata: await ProductService.updateProduct(
+        req.body.product_type,
+        req.params.product_id,
+        {
+          ...req.body,
+          product_shop: req.user.userId,
+        }
+      ),
+    }).send(res);
+  }
   // query
   /**
    *

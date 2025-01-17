@@ -16,6 +16,7 @@ router.use(authenticationV2);
 
 // mutation
 router.post("", asyncHandler(ProductController.createProduct));
+router.patch("/:product_id", asyncHandler(ProductController.updateProduct));
 router.post(
   "/publish/:product_id",
   asyncHandler(ProductController.publishProductByShop)
