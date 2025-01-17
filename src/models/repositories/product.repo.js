@@ -1,6 +1,7 @@
 "use strict";
 
 const { BadRequestError, NotFoundError } = require("../../core/error.response");
+const { getSelectData, unSelectData } = require("../../utils");
 const {
   product,
   clothing,
@@ -51,12 +52,32 @@ const unPublishProductByShop = async ({ product_shop, product_id }) => {
   const { modifiedCount } = await foundShop.updateOne(foundShop);
   return modifiedCount;
 };
+const findAllProduct = async ({ limit, sort, page, filter, select }) => {
+  const skip = (page - 1) * limit;
+  const sortBy = sort === "ctime" ? { _id: -1 } : { id: 1 };
+  const products = await product
+    .find(filter)
+    .sort(sortBy)
+    .skip(skip)
+    .limit(limit)
+    .select(getSelectData(select))
+    .lean();
+  return products;
+};
+const findProduct = async ({ product_id, unSelect }) => {
+  return await product
+    .findById(product_id)
+    .select(unSelectData(unSelect))
+    .lean()
+    .exec();
+};
 const queryProduct = async ({ query, limit, skip }) => {
   return await product
     .find(query)
     .populate("product_shop", "name email -_id")
     .sort({ updatedAt: -1 })
     .limit(limit)
+    .skip(skip)
     .lean()
     .exec();
 };
@@ -66,4 +87,6 @@ module.exports = {
   findAllPublishForShop,
   unPublishProductByShop,
   searchProductByUser,
+  findAllProduct,
+  findProduct,
 };

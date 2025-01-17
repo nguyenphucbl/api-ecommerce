@@ -10,7 +10,16 @@ const createKeyPair = () => {
   const publicKey = crypto.randomBytes(64).toString("hex");
   return { privateKey, publicKey };
 };
+// [a,b] => {a:1,b:1}
+const getSelectData = (select = []) => {
+  return Object.fromEntries(select.map((key) => [key, 1]));
+};
+const unSelectData = (select = []) => {
+  return Object.fromEntries(select.map((key) => [key, 0]));
+};
 module.exports = {
   getInfoData,
   createKeyPair,
+  getSelectData,
+  unSelectData,
 };
