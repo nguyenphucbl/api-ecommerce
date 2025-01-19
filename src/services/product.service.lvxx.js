@@ -18,6 +18,7 @@ const {
   updateProductById,
 } = require("../models/repositories/product.repo");
 const { removeUndefinedObject, updateNestedObject } = require("../utils");
+const { insertInventory } = require("../models/repositories/inventory.repo");
 // define factory class to create product
 
 class ProductFactory {
@@ -106,10 +107,18 @@ class Product {
   }
   // create new product
   async createProduct(product_id) {
-    return await product.create({
+    const newProduct = await product.create({
       ...this,
       _id: product_id,
     });
+    if (newProduct) {
+      await insertInventory({
+        productId: newProduct._id,
+        shopId: newProduct.product_shop,
+        stock: newProduct.product_quantity,
+      });
+    }
+    return newProduct;
   }
   // update product
   async updateProduct(product_id, payload) {
@@ -162,6 +171,25 @@ class Electronics extends Product {
     if (!newProduct) throw new BadRequestError("Failed to create new product");
     return newProduct;
   }
+  async updateProduct(product_id) {
+    // remove attribute has null or undefined value
+    // console.log("1:::", this);
+    const objectParams = removeUndefinedObject(this);
+    // console.log("2:::", objectParams);
+    if (objectParams.product_attributes) {
+      //update child
+      await updateProductById({
+        product_id,
+        payload: updateNestedObject(objectParams.product_attributes),
+        model: electronic,
+      });
+    }
+    const updateProduct = await super.updateProduct(
+      product_id,
+      updateNestedObject(objectParams)
+    );
+    return updateProduct;
+  }
 }
 class Furniture extends Product {
   async createProduct() {
@@ -174,6 +202,25 @@ class Furniture extends Product {
     const newProduct = await super.createProduct(newFurniture._id);
     if (!newProduct) throw new BadRequestError("Failed to create new product");
     return newProduct;
+  }
+  async updateProduct(product_id) {
+    // remove attribute has null or undefined value
+    // console.log("1:::", this);
+    const objectParams = removeUndefinedObject(this);
+    // console.log("2:::", objectParams);
+    if (objectParams.product_attributes) {
+      //update child
+      await updateProductById({
+        product_id,
+        payload: updateNestedObject(objectParams.product_attributes),
+        model: furniture,
+      });
+    }
+    const updateProduct = await super.updateProduct(
+      product_id,
+      updateNestedObject(objectParams)
+    );
+    return updateProduct;
   }
 }
 // register product type
