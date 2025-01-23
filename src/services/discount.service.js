@@ -78,12 +78,48 @@ class DiscountService {
     return newDiscount;
   }
   // update discount code
-  static async updateDiscountCode(discount_id, payload) {
-    const foundDiscount = await discountModel.findById(discount_id);
+  static async updateDiscountCode(discountId, payload) {
+    const foundDiscount = await discountModel.findById(discountId);
     if (!foundDiscount) throw new NotFoundError("Discount code not found");
+    const {
+      code,
+      start_date,
+      end_date,
+      is_active,
+      shopId,
+      min_order_value,
+      product_ids,
+      applies_to,
+      name,
+      description,
+      type,
+      value,
+      // max_value,
+      max_uses,
+      uses_count,
+      max_uses_per_user,
+    } = payload;
+
     const newDiscount = await discountModel.findByIdAndUpdate(
-      discount_id,
-      payload,
+      discountId,
+      {
+        discount_name: name,
+        discount_description: description,
+        discount_type: type,
+        discount_value: value,
+        // discount_max_value: max_value,
+        discount_code: code,
+        discount_start_date: new Date(start_date),
+        discount_end_date: new Date(end_date),
+        discount_min_order_value: min_order_value || 0,
+        discount_shopId: convertToObjectId(shopId),
+        discount_product_ids: applies_to === "all" ? [] : product_ids,
+        discount_applies_to: applies_to,
+        discount_max_uses: max_uses,
+        discount_is_active: is_active,
+        discount_uses_count: uses_count,
+        discount_max_uses_per_user: max_uses_per_user,
+      },
       { new: true }
     );
     return newDiscount;
@@ -193,10 +229,16 @@ class DiscountService {
         );
     }
     if (discount_max_uses_per_user > 0) {
-      const userUseDiscount = discount_users_used.find(
-        (user) => user.userId === userId
+      const userUsedDiscount = discount_users_used.find(
+        (user) => user.userId.toString() === userId
       );
-      if (userUseDiscount) {
+      if (
+        userUsedDiscount &&
+        userUsedDiscount.used_count >= discount_max_uses_per_user
+      ) {
+        throw new BadRequestError(
+          "You have reached maximum uses of this discount code"
+        );
       }
     }
     // check discount is fixed amount or percentage
@@ -218,24 +260,37 @@ class DiscountService {
     return deleted;
   }
   static async cancelDiscountCode({ code, shopId, userId }) {
-    const foundDiscount = await findOneDiscount({
-      filter: {
+    const refundDiscount = await discountModel.findOneAndUpdate(
+      {
         discount_code: code,
         discount_shopId: convertToObjectId(shopId),
+        "discount_users_used.userId": userId,
       },
-      model: discountModel,
-    });
-    if (!foundDiscount) throw new NotFoundError("Discount code not found");
-    const result = await discountModel.findByIdAndUpdate(code, {
-      $pull: {
-        discount_users_used: userId,
+      {
+        $inc: {
+          discount_max_uses: 1,
+          discount_uses_count: -1,
+          "discount_users_used.$.used_count": -1,
+        },
       },
-      $inc: {
-        discount_max_uses: 1,
-        discount_uses_count: -1,
-      },
-    });
-    return result;
+      { new: true }
+    );
+    if (!refundDiscount) throw new NotFoundError("Discount code not found");
+    const userUsage = discount_users_used.find(
+      (user) => user.userId.toString() === userId
+    );
+    if (userUsage && userUsage.used_count <= 0) {
+      await discountModel.findOneAndUpdate(
+        {
+          discount_code: code,
+          discount_shopId: convertToObjectId(shopId),
+        },
+        {
+          $pull: { discount_users_used: { userId } },
+        }
+      );
+    }
+    return refundDiscount;
   }
 }
 

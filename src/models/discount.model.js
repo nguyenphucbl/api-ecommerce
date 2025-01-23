@@ -43,7 +43,12 @@ const discountSchema = new Schema(
       required: true,
     }, // volume used of discount
     discount_users_used: {
-      type: Array,
+      type: [
+        {
+          userId: { type: Schema.Types.ObjectId, ref: "Shop" },
+          used_count: Number,
+        },
+      ],
       default: [],
     }, // who used this discount
     discount_max_uses_per_user: {

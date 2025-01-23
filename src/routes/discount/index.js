@@ -12,6 +12,7 @@ router.get(
   "/list-product-code",
   asyncHandler(DiscountController.getAllDiscountCodesWithProduct)
 );
-router.post("", asyncHandler(DiscountController.createProduct));
+router.post("", asyncHandler(DiscountController.createDiscount));
+router.patch("/:discountId", asyncHandler(DiscountController.updateDiscount));
 router.get("", asyncHandler(DiscountController.getAllDiscountCodes));
 module.exports = router;
