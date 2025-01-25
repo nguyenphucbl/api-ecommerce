@@ -93,7 +93,14 @@ class CartService {
       });
       return await userCart.save();
     }
-    // if product exists in cart
+    // if cart exists and product exists
+    const foundProductIndex = userCart.cart_products.findIndex(
+      (item) => item.productId === product.productId
+    );
+    if (foundProductIndex === -1) {
+      // add product to cart
+      return await this.createUserCart({ userId, product });
+    }
     return await this.updateQuantityInUserCart({ userId, product });
   }
   //update cart v2

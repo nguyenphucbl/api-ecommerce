@@ -24,7 +24,8 @@ const cartSchema = new Schema(
       default: 0,
     },
     cart_userId: {
-      type: Number,
+      type: Schema.Types.ObjectId,
+      ref: "Shop",
       required: true,
     },
   },
