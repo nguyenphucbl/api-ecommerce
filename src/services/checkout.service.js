@@ -1,9 +1,11 @@
 "use strict";
 
 const { BadRequestError } = require("../core/error.response");
+const orderModel = require("../models/order.model");
 const { findCartById } = require("../models/repositories/cart.repo");
 const { checkProductByServer } = require("../models/repositories/product.repo");
 const { getDiscountAmount } = require("./discount.service");
+const { acquiredLock, releaseLock } = require("./redis.service");
 
 class CheckoutService {
   /**
@@ -113,10 +115,50 @@ class CheckoutService {
       "🚀 ~ file: checkout.service.js ~ line 108 ~ CheckoutService ~ orderByUser ~ products",
       products
     );
+    const acquireProduct = [];
     for (let i = 0; i < products.length; i++) {
       const { productId, quantity } = products[i];
+      const keyLock = await acquiredLock(productId, quantity, cartId);
+      acquireProduct.push(keyLock ? true : false);
+      if (keyLock) {
+        await releaseLock(keyLock);
+      }
     }
+    // if one of product not enough stock
+    if (acquireProduct.includes(false)) {
+      throw new BadRequestError("Product not enough stock");
+    }
+    // order success
+    const newOrder = await orderModel.create({
+      order_userId: userId,
+      order_checkout: checkoutOrder,
+      order_shipping: user_address,
+      order_payment: user_payment,
+      order_products: shop_order_ids_new,
+    });
+    //if order success, remove product from cart
+    if (newOrder) {
+      await foundCart.remove();
+    }
+    return newOrder;
   }
+  /**
+   * 1. query order by userId
+   */
+  static async getOrderByUser(userId) {}
+  /**
+   * 1. query order by orderId
+   */
+  static async getOneOrderByUser() {}
+  /**
+   * 1. cancel Order [user]
+
+   */
+  static async cancelOrderByUser() {}
+  /**
+   * 1. update Order status [admin|shop]
+   */
+  static async updateOrderStatusByShop() {}
 }
 
 module.exports = CheckoutService;
