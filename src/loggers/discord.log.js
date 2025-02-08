@@ -14,8 +14,7 @@ const client = new Client({
 client.on("ready", () => {
   console.log(`Logged in as ${client.user.tag}`);
 });
-const token =
-  "MTMzNzA1MDk3MzQxOTQ3MDg4OA.GWfoMs.JWaWQCXRYDTmWw9R56qLu2B-Z1TYlNJ49IecLU";
+
 client.login(token);
 
 client.on("messageCreate", async (message) => {
