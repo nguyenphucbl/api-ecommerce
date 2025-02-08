@@ -10,6 +10,7 @@ const {
   ForbiddenError,
 } = require("../core/error.response");
 const { findByEmail } = require("./shop.service");
+const shopModel = require("../models/shop.model");
 const RoleShop = {
   SHOP: "SHOP",
   WRITER: "WRITER",
@@ -101,7 +102,7 @@ class AccessService {
     };
   }
   static async signUp({ name, email, password }) {
-    const existedEmail = await shopModel.findOne({ email }).lean();
+    const existedEmail = await findByEmail({ email });
     if (existedEmail) {
       throw new BadRequestError("Error: Email already exists");
     }

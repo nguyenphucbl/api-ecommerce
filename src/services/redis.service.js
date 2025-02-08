@@ -4,8 +4,17 @@ const redis = require("redis");
 const {
   reservationInventory,
 } = require("../models/repositories/inventory.repo");
-const redisClient = redis.createClient();
 
+const redisClient = redis.createClient({
+  url: process.env.REDIS_URL,
+});
+redisClient.on("error", (err) => {
+  console.log("Error " + err);
+});
+(async () => {
+  await redisClient.connect();
+  console.log("Connected to Redis");
+})(); // connect to redis
 const acquiredLock = async (productId, quantity, cartId) => {
   const key = `lock_v2023_${productId}`;
   const retryTimes = 10;
