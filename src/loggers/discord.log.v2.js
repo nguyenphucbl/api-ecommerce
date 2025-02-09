@@ -20,6 +20,7 @@ class LoggerService {
     this.client.login(process.env.DISCORD_BOT_TOKEN);
   }
   sendToFormatCode(logData) {
+    // add default value
     const {
       code,
       message = "This is some additional information about the code",
